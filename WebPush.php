@@ -47,7 +47,7 @@ class WebPush {
             throw new Error('Impossible to create WebPush object: cannot load VAPID key');
         }
         $vapid_key_details = openssl_pkey_get_details($this->vapid_key)['ec'];
-        $this->vapid_public = "\x04{$vapid_key_details['x']}{$vapid_key_details['y']}";
+        $this->vapid_public = base64_to_urlsafe("\x04{$vapid_key_details['x']}{$vapid_key_details['y']}");
         $vapid_aud = parse_url($endpoint);
         $this->vapid_aud = "{$vapid_aud['scheme']}://{$vapid_aud['host']}";
         $this->vapid_exp_slot = min($raw_vapid->exp_slot, 86400 - static::VAPID_MIN_EXP);
@@ -167,7 +167,7 @@ class WebPush {
     }
 
     public function vapid_key() : string {
-        return base64_to_urlsafe($this->vapid_public);
+        return $this->vapid_public;
     }
 
     private function vapid_jwt() : string {
