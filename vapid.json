@@ -1,0 +1,5 @@
+{
+	"exp_slot" : 43200,
+	"mail" : "## your.tech@mail.here ##",
+	"key" : "## YOUR VAPID PRIVATE KEY IN BASE64URLSAFE FORMAT (random 32 Bytes) ##"
+}
