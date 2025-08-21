@@ -16,6 +16,9 @@ class WebPush {
     private const string CRYPTO_ALGORITHM = 'aes-128-gcm';
     private const string CRYPTO_ALGORITHM_NODASH = 'aes128gcm';
 
+    private const string VAPID_FILE_DEFAULT = 'vapid.json';
+    private const string VAPID_PUBKEY_FILE_DEFAULT = 'vapidkey.pub';
+
     private OpenSSLAsymmetricKey $vapid_key;
     protected string $vapid_public;
     private string $vapid_aud;
