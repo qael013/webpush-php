@@ -166,8 +166,47 @@ class WebPush {
         return $header . $cypher;
     }
 
-    public function vapid_key() : string {
-        return $this->vapid_public;
+    public static function vapid_key(
+        string $pubkey_file = VAPID_PUBKEY_FILE_DEFAULT,
+    ) : string {
+        $public = file_get_contents(__DIR__ . "/{$pubkey_file}");
+        if($public === false){
+            return '';
+        }
+
+        return $public;
+    }
+
+    public static function new_vapid_key(
+        string $mail,
+        int $exp_slot = 43200,  //12 hours
+        string $json_file = VAPID_FILE_DEFAULT,
+        string $pubkey_file = VAPID_PUBKEY_FILE_DEFAULT,
+    ) : string {
+        $key = openssl_pkey_new([
+            'ec' => [
+                'curve_name' => static::EC_CURVE,
+            ]
+        ]);
+
+        $key_details = openssl_pkey_get_details($key)['ec'];
+        $private = Base64::to_urlsafe("{$key_details['d']}");
+        $public = Base64::to_urlsafe("\x04{$key_details['x']}{$key_details['y']}");
+
+        $vapid = [
+            'exp_slot' => $exp_slot,
+            'mail' => $mail,
+            'key' => $private,
+        ];
+
+        if(file_put_contents(__DIR__ . "/{$json_file}", json_encode($vapid)) === false){
+            return '';
+        }
+        if(file_put_contents(__DIR__ . "/{$pubkey_file}", $public) === false){
+            return '';
+        }
+
+        return $public;
     }
 
     private function vapid_jwt() : string {
