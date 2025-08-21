@@ -1,26 +1,26 @@
 <?php
 function base64_to_urlsafe(string $plain){
-	return sodium_bin2base64($plain, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+       return sodium_bin2base64($plain, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
 }
 function base64_from_urlsafe(string $encoded){
-	return sodium_base642bin($encoded, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
+       return sodium_base642bin($encoded, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING);
 }
 
 class WebPush {
     private const string VAPID_SIGN_ALGORITHM = 'ES256';
     private const int VAPID_SIGN_NUM_LEN = 32;
-    private const int VAPID_MIN_EXP = 300;
+    private const int VAPID_MIN_EXP = 300; // 5 mins
     private const string EC_CURVE = 'prime256v1';
     private const int SALT_LEN = 16;
     private const string HASH_ALGORITHM = 'sha256';
     private const string CRYPTO_ALGORITHM = 'aes-128-gcm';
     private const string CRYPTO_ALGORITHM_NODASH = 'aes128gcm';
 
+    private const int VAPID_SLOT_DEFAULT = 43200; // 12 hours
     private const string VAPID_FILE_DEFAULT = 'vapid.json';
     private const string VAPID_PUBKEY_FILE_DEFAULT = 'vapidkey.pub';
 
     private OpenSSLAsymmetricKey $vapid_key;
-    protected string $vapid_public;
     private string $vapid_aud;
     private int $vapid_exp_slot;
     private string $vapid_mail;
@@ -36,7 +36,7 @@ class WebPush {
         #[\SensitiveParameter] string $endpoint,
         #[\SensitiveParameter] string $ua_public,
         #[\SensitiveParameter] string $auth_secret,
-        string $vapid_file = 'vapid.json'
+        string $vapid_file = VAPID_FILE_DEFAULT,
     ){
         $vapid_file_content = file_get_contents(__DIR__ . "/{$vapid_file}");
         $raw_vapid = json_decode($vapid_file_content, false);
@@ -50,7 +50,6 @@ class WebPush {
             throw new Error('Impossible to create WebPush object: cannot load VAPID key');
         }
         $vapid_key_details = openssl_pkey_get_details($this->vapid_key)['ec'];
-        $this->vapid_public = base64_to_urlsafe("\x04{$vapid_key_details['x']}{$vapid_key_details['y']}");
         $vapid_aud = parse_url($endpoint);
         $this->vapid_aud = "{$vapid_aud['scheme']}://{$vapid_aud['host']}";
         $this->vapid_exp_slot = min($raw_vapid->exp_slot, 86400 - static::VAPID_MIN_EXP);
@@ -114,7 +113,6 @@ class WebPush {
                 "Urgency: {$urgency}",
                 "Authorization: vapid t={$jwt},k={$this->vapid_key()}",
             ],
-            CURLOPT_RETURNTRANSFER => false,
         ];
         if($topic !== ''){
             $options[CURLOPT_HTTPHEADER][] = "Topic: {$topic}";
@@ -182,7 +180,7 @@ class WebPush {
 
     public static function new_vapid_key(
         string $mail,
-        int $exp_slot = 43200,  //12 hours
+        int $exp_slot = VAPID_SLOT_DEFAULT,
         string $json_file = VAPID_FILE_DEFAULT,
         string $pubkey_file = VAPID_PUBKEY_FILE_DEFAULT,
     ) : string {
@@ -193,8 +191,8 @@ class WebPush {
         ]);
 
         $key_details = openssl_pkey_get_details($key)['ec'];
-        $private = Base64::to_urlsafe("{$key_details['d']}");
-        $public = Base64::to_urlsafe("\x04{$key_details['x']}{$key_details['y']}");
+        $private = base64_to_urlsafe("{$key_details['d']}");
+        $public = base64_to_urlsafe("\x04{$key_details['x']}{$key_details['y']}");
 
         $vapid = [
             'exp_slot' => $exp_slot,
