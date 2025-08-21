@@ -36,7 +36,7 @@ class WebPush {
         #[\SensitiveParameter] string $endpoint,
         #[\SensitiveParameter] string $ua_public,
         #[\SensitiveParameter] string $auth_secret,
-        string $vapid_file = VAPID_FILE_DEFAULT,
+        string $vapid_file = self::VAPID_FILE_DEFAULT,
     ){
         $vapid_file_content = file_get_contents(__DIR__ . "/{$vapid_file}");
         $raw_vapid = json_decode($vapid_file_content, false);
@@ -135,10 +135,10 @@ class WebPush {
     private function encrypt($message) : string {
         $as_key = openssl_pkey_new([
             'ec' => [
-                'curve_name' => static::EC_CURVE,
+                'curve_name' => self::EC_CURVE,
             ]
         ]);
-        $salt = random_bytes(static::SALT_LEN);
+        $salt = random_bytes(self::SALT_LEN);
 
         return $this->nonrandom_encrypt($message, $as_key, $salt);
     }
@@ -168,7 +168,7 @@ class WebPush {
     }
 
     public static function vapid_key(
-        string $pubkey_file = VAPID_PUBKEY_FILE_DEFAULT,
+        string $pubkey_file = self::VAPID_PUBKEY_FILE_DEFAULT,
     ) : string {
         $public = file_get_contents(__DIR__ . "/{$pubkey_file}");
         if($public === false){
@@ -180,9 +180,9 @@ class WebPush {
 
     public static function new_vapid_key(
         string $mail,
-        int $exp_slot = VAPID_SLOT_DEFAULT,
-        string $json_file = VAPID_FILE_DEFAULT,
-        string $pubkey_file = VAPID_PUBKEY_FILE_DEFAULT,
+        int $exp_slot = self::VAPID_SLOT_DEFAULT,
+        string $json_file = self::VAPID_FILE_DEFAULT,
+        string $pubkey_file = self::VAPID_PUBKEY_FILE_DEFAULT,
     ) : string {
         $key = openssl_pkey_new([
             'ec' => [
