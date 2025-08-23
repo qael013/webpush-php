@@ -14,6 +14,7 @@ class WebPush_Test extends WebPush {
             endpoint : '',
             ua_public : 'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4',
             auth_secret : 'BTBZMqHH6r4Tts7J_aSIgg',
+            vapid_file : 'vapid_test.json'
         );
 
         $as_key = openssl_pkey_new([
@@ -78,11 +79,13 @@ class WebPush_Test extends WebPush {
 
         $asn1_signature = "\x30" . chr(4 + $rlen + $slen) . "\x02" . chr($rlen) . "{$r}\x02" . chr($slen) . $s;
 
+        $vapid_public = base64_from_urlsafe(WebPush::vapid_key('vapid_key_test.pub'));
+
         $vapid_public_key = openssl_pkey_new([
             'ec' => [
                 'curve_name' => 'prime256v1',
-                'x' => substr($webpush->vapid_public, 1, 32),
-                'y' => substr($webpush->vapid_public, 33),
+                'x' => substr($vapid_public, 1, 32),
+                'y' => substr($vapid_public, 33),
             ]
         ]);
 

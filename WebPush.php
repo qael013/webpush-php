@@ -20,7 +20,7 @@ class WebPush {
     private const string VAPID_FILE_DEFAULT = 'vapid.json';
     private const string VAPID_PUBKEY_FILE_DEFAULT = 'vapidkey.pub';
 
-    private OpenSSLAsymmetricKey $vapid_key;
+    protected OpenSSLAsymmetricKey $vapid_key;
     private string $vapid_aud;
     private int $vapid_exp_slot;
     private string $vapid_mail;
